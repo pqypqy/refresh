@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <style>
+    *{margin: 0;padding:0}
+      .header{
+        width: 100%;
+        height: 1rem;
+        background: blue;
+        text-align: center;
+        font-size: 0.32rem;
+        line-height: 1rem;
+        color: #fff;
+      }
+      .main{
+        width: 100%;
+        overflow: hidden;
+        height: 10rem;
+      }
+      .main .main_1{
+        font-size: 0.32rem;
+        width: 100%;
+        height: 2rem;
+        /* background: #0dd; */
+        text-align: center;
+        transition-duration: 200ms;
+      }
+      .top{
+        height: 1rem;
+        line-height: 1rem;
+        margin-top: -1rem;
+        background: #afb4db;
+      }
+      .main_content{
+        margin-bottom:0.1rem;
+        background:#45b97c;
+        height: .6rem;
+        line-height: .6rem;
+      }
+    </style>
+  <script src="https://cdn.staticfile.org/vue/2.2.2/vue.min.js"></script>
+  <script>
+    (function(win) {
+    var doc = win.document;
+    var docEl = doc.documentElement;
+    var tid;
+    function refreshRem() {
+        var width = docEl.getBoundingClientRect().width;
+        if (width > 540) { // 最大宽度
+            width = 540;
+        }
+        var rem = width / 7.5; 
+        docEl.style.fontSize = rem + 'px';
+    }
+
+    win.addEventListener('resize', function() {
+        clearTimeout(tid);
+        tid = setTimeout(refreshRem, 300);
+    }, false);
+    win.addEventListener('pageshow', function(e) {
+        if (e.persisted) {
+            clearTimeout(tid);
+            tid = setTimeout(refreshRem, 300);
+        }
+    }, false);
+
+    refreshRem();
+
+})(window);
+  </script>
+</head>
+<body>
+  <div id="myVue">
+    <div class="header">
+      下拉刷新
+    </div>
+    <div class="main" 
+    @touchstart="touchstart($event)"
+    @touchmove="touchmove($event)"
+    @touchend="touchend($event)"
+    >
+     <div class="main_1" :style="{transform: 'translate3d(0,' + top + 'rem, 0)'}">
+      <div class="top">{{statusText}}</div>
+      <div
+      class="main_content"
+       v-for="(item,index) in arr"
+       :key="index"
+      >{{item}}</div> 
+     </div>
+    </div>
+  </div>
+</body>
+<script>
+  var myVue = new Vue({
+    el:"#myVue",
+    data:{
+      arr:[0,1,2],
+      top:0,
+      statusText:'松开手指刷新',
+      touchStartY:0,//起始位置,
+      scrollTop:0,
+    },
+    methods:{
+      touchstart(e){
+        console.log("touchstart")
+        this.touchStartY = e.targetTouches[0].pageY;
+      },
+      touchmove(e){
+        console.log("touchmove")
+        // 滚动高兼容
+        this.scrollTop = document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop 
+        var distance = e.targetTouches[0].pageY -  this.touchStartY - this.scrollTop;
+        // console.log("distance",distance/100)
+        if(e.targetTouches[0].pageY > this.touchStartY){// 下拉
+          this.top  = distance/100>=1?1:distance/100; // 最大1
+        }
+      },
+      touchend(e){
+        
+        if(this.top===1){
+         
+          this.statusText = '正在刷新...' 
+          console.log("this.statusText",this.top)
+          setTimeout(()=>{
+            this.top  = 0;
+            this.statusText = '松开手指刷新' 
+           this.arr.push(this.arr.length)
+          }
+          ,1000)
+
+        }else{
+          this.top  = 0;
+        }
+        console.log("touchend")
+      }
+    }
+  })
+</script>
+</html>
